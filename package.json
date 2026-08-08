@@ -1,0 +1,16 @@
+{
+  "name": "whatsapp-funil",
+  "version": "1.0.0",
+  "description": "Bot de resposta automática para WhatsApp via Meta Cloud API (opt-in via anúncio) com funil de vendas de ebook",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5"
+  }
+}
