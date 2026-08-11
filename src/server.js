@@ -13,7 +13,7 @@ app.get("/webhook/whatsapp", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
-
+console.log("DEBUG mode:", mode, "| token recebido:", JSON.stringify(token), "| token esperado:", JSON.stringify(process.env.WEBHOOK_VERIFY_TOKEN));
   if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFY_TOKEN) {
     return res.status(200).send(challenge);
   }
