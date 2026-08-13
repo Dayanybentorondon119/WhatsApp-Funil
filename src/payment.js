@@ -11,9 +11,16 @@ async function getOrCreateAsaasCustomer(phone, name, cpf) {
   const search = await asaas.get("/customers", {
     params: { externalReference: phone },
   });
+
   if (search.data.data.length > 0) {
-    return search.data.data[0].id;
+    const existing = search.data.data[0];
+    // Se o cliente já existe mas ainda não tem CPF salvo, atualiza agora
+    if (!existing.cpfCnpj && cpf) {
+      await asaas.post(`/customers/${existing.id}`, { cpfCnpj: cpf });
+    }
+    return existing.id;
   }
+
   const created = await asaas.post("/customers", {
     name: name || `Lead ${phone}`,
     mobilePhone: phone,
