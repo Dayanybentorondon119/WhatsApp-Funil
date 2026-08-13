@@ -40,7 +40,7 @@ app.post("/webhook/whatsapp", async (req, res) => {
 
     await handleIncomingMessage({ from, name: contactName, text, buttonId });
   } catch (err) {
-    console.error("Erro processando mensagem do WhatsApp:", err);
+  console.error("Erro processando mensagem do WhatsApp:", JSON.stringify(err.response?.data || err.message || err, null, 2));
   }
 });
 
