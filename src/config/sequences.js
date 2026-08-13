@@ -27,28 +27,21 @@ export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
 
 // ============ SEQUÊNCIA 1: BOAS-VINDAS (lead novo) ============
 export const sequenciaBoasVindas = [
+ export const sequenciaBoasVindas = [
   {
     type: "text",
-    text: "Oi {nome}! Que bom te ver por aqui 🥗 Sou especialista em receitas de saladas gourmet.",
-    delayAfter: 10,
+    text: `Olá querida {nome}, boa tarde, tudo bem 💖?
+
+Eu *preparei 2 opções especiais de receitas de tortas geladas gourmet*, tudo simples, caseiro e lucrativo.
+
+Você recebe direto no WhatsApp e só paga depois que eu te enviar tudinho 💸
+
+Vou te enviar as opções, ok?
+
+*Mas atenção:* Estou liberando essa condição somente para 50 primeiras pessoas que garantirem hoje. *E para garantir que você tenha essa condição especial e acesso a todo material poderia salvar meu contato por gentileza*.`,
+    delayAfter: 3,
   },
-  {
-    type: "audio",
-    url: "https://SEU-DOMINIO.com/assets/apresentacao.ogg",
-    delayAfter: 12,
-  },
-  {
-    type: "image",
-    url: "https://SEU-DOMINIO.com/assets/capa-ebook.jpg",
-    caption: "80+ receitas de saladas premium para secar comendo bem ✨",
-    delayAfter: 8,
-  },
-  {
-    type: "buttons",
-    text: "Quer receber o material completo agora?",
-    options: ["Sim, quero!", "Me conta mais"],
-    delayAfter: 0,
-  },
+];
 ];
 
 // ============ SEQUÊNCIA 2: CLIENTE QUIS SABER MAIS (não decidiu ainda) ============
