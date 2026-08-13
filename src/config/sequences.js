@@ -27,7 +27,6 @@ export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
 
 // ============ SEQUÊNCIA 1: BOAS-VINDAS (lead novo) ============
 export const sequenciaBoasVindas = [
- export const sequenciaBoasVindas = [
   {
     type: "text",
     text: `Olá querida {nome}, boa tarde, tudo bem 💖?
@@ -41,7 +40,6 @@ Vou te enviar as opções, ok?
 *Mas atenção:* Estou liberando essa condição somente para 50 primeiras pessoas que garantirem hoje. *E para garantir que você tenha essa condição especial e acesso a todo material poderia salvar meu contato por gentileza*.`,
     delayAfter: 3,
   },
-];
 ];
 
 // ============ SEQUÊNCIA 2: CLIENTE QUIS SABER MAIS (não decidiu ainda) ============
