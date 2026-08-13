@@ -21,11 +21,8 @@
 
 export const PRECO_PRODUTO = 10.0;
 
-// Quantos minutos esperar sem resposta do cliente antes de mandar
-// uma mensagem de reengajamento (pra não perder o lead)
 export const MINUTOS_SEM_INTERACAO_ANTES_DE_REENGAJAR = 10;
 
-// Quantas horas esperar sem pagamento antes de mandar o lembrete de cobrança
 export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
 
 // ============ SEQUÊNCIA 1: BOAS-VINDAS (lead novo) ============
@@ -69,8 +66,14 @@ export const sequenciaContarMais = [
   },
 ];
 
+// ============ NOVO: PEDIR O CPF ANTES DE GERAR A COBRANÇA ============
+export const mensagemPedirCpf =
+  "Perfeito! 🎉 Pra eu gerar sua chave Pix, me manda seu CPF (só os números, sem pontos nem traço).";
+
+export const mensagemCpfInvalido =
+  "Esse CPF não parece completo 🤔 Manda só os 11 números, sem espaço nem pontuação.";
+
 // ============ SEQUÊNCIA 3: CLIENTE ACEITOU (gera cobrança) ============
-// O {link} é substituído automaticamente pelo link de pagamento gerado.
 export const sequenciaCobranca = [
   {
     type: "text",
