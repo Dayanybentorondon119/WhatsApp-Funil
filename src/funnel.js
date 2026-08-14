@@ -1,14 +1,12 @@
-import { sendText, sendAudio, sendImage, sendButtons, sendDocument } from "./whatsappClient.js";
+import { sendText, sendImage, sendButtons, sendDocument } from "./whatsappClient.js";
 import {
   getOrCreateLead,
   updateStage,
-  saveCpf,
   markReminderSent,
   markReengagementSent,
   findLeadsAwaitingPaymentOlderThan,
-  findLeadsWithoutInteraction,
+  findLeadsWithoutChoice,
 } from "./db.js";
-import { createPixCharge } from "./payment.js";
 import * as cfg from "./config/sequences.js";
 
 const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -20,9 +18,6 @@ async function enviarSequencia(to, passos, variaveis = {}) {
     switch (passo.type) {
       case "text":
         await sendText(to, texto);
-        break;
-      case "audio":
-        await sendAudio(to, passo.url);
         break;
       case "image":
         await sendImage(to, passo.url, passo.caption || "");
@@ -40,10 +35,7 @@ async function enviarSequencia(to, passos, variaveis = {}) {
 }
 
 function substituirVariaveis(texto, variaveis) {
-  return texto
-    .replace("{nome}", variaveis.nome || "")
-    .replace("{preco}", (cfg.PRECO_PRODUTO || 0).toFixed(2))
-    .replace("{link}", variaveis.link || "");
+  return texto.replace("{nome}", variaveis.nome || "");
 }
 
 export async function handleIncomingMessage({ from, name, text, buttonId }) {
@@ -56,29 +48,16 @@ export async function handleIncomingMessage({ from, name, text, buttonId }) {
   }
 
   if (lead.stage === "aguardando_interesse") {
-    const quisAceitar = buttonId === "btn_0" || /sim/i.test(text || "");
+    const escolheuOpcao1 = buttonId === "btn_0" || /\b1\b/.test(text || "");
+    const escolheuOpcao2 = buttonId === "btn_1" || /\b2\b/.test(text || "");
 
-    if (quisAceitar) {
-      await sendText(from, cfg.mensagemPedirCpf);
-      updateStage(from, "aguardando_cpf");
-    } else {
-      await enviarSequencia(from, cfg.sequenciaContarMais, { nome: name });
+    if (escolheuOpcao1) {
+      await enviarSequencia(from, cfg.sequenciaCobrancaOpcao1, { nome: name });
+      updateStage(from, "aguardando_pagamento", "1");
+    } else if (escolheuOpcao2) {
+      await enviarSequencia(from, cfg.sequenciaCobrancaOpcao2, { nome: name });
+      updateStage(from, "aguardando_pagamento", "2");
     }
-    return;
-  }
-
-  if (lead.stage === "aguardando_cpf") {
-    const cpfLimpo = (text || "").replace(/\D/g, "");
-
-    if (cpfLimpo.length !== 11) {
-      await sendText(from, cfg.mensagemCpfInvalido);
-      return;
-    }
-
-    saveCpf(from, cpfLimpo);
-    const charge = await createPixCharge({ phone: from, amount: cfg.PRECO_PRODUTO, name, cpf: cpfLimpo });
-    await enviarSequencia(from, cfg.sequenciaCobranca, { link: charge.paymentLink });
-    updateStage(from, "aguardando_pagamento", charge.paymentId);
     return;
   }
 
@@ -92,8 +71,13 @@ export async function handleIncomingMessage({ from, name, text, buttonId }) {
   }
 }
 
+/**
+ * Chamado quando VOCÊ libera manualmente pela página de admin.
+ */
 export async function handlePaymentConfirmed(lead) {
-  await enviarSequencia(lead.phone, cfg.sequenciaPagamentoConfirmado, { nome: lead.name });
+  const sequencia =
+    lead.opcao === "2" ? cfg.sequenciaPagamentoConfirmadoOpcao2 : cfg.sequenciaPagamentoConfirmadoOpcao1;
+  await enviarSequencia(lead.phone, sequencia, { nome: lead.name });
   updateStage(lead.phone, "pago");
 }
 
@@ -107,10 +91,10 @@ export async function enviarLembretesPendentes() {
 }
 
 export async function enviarReengajamentos() {
-  const semInteracao = findLeadsWithoutInteraction(cfg.MINUTOS_SEM_INTERACAO_ANTES_DE_REENGAJAR);
+  const semEscolha = findLeadsWithoutChoice(cfg.MINUTOS_SEM_ESCOLHA_ANTES_DE_REENGAJAR);
 
-  for (const lead of semInteracao) {
-    await enviarSequencia(lead.phone, cfg.sequenciaReengajamento, { nome: lead.name });
+  for (const lead of semEscolha) {
+    await enviarSequencia(lead.phone, cfg.sequenciaReengajamentoEscolha, { nome: lead.name });
     markReengagementSent(lead.phone);
   }
 }
