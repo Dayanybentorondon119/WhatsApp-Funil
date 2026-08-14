@@ -11,7 +11,7 @@ export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
 export const sequenciaBoasVindas = [
   {
     type: "text",
-    text: `Olá querida {nome}, boa tarde, tudo bem 💖?
+    text: `Olá querida {nome}, tudo bem 💖?
 
 Eu *preparei 2 opções especiais de receitas de tortas geladas gourmet*, tudo simples, caseiro e lucrativo.
 
