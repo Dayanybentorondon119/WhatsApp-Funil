@@ -1,98 +1,112 @@
 import "dotenv/config";
 import express from "express";
 import { handleIncomingMessage, handlePaymentConfirmed, enviarLembretesPendentes, enviarReengajamentos } from "./funnel.js";
-import { findLeadByPaymentId } from "./db.js";
+import { findLeadsAwaitingPayment, findLeadByPhone } from "./db.js";
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ============ WEBHOOK DO WHATSAPP ============
-
-// 1) Verificação inicial exigida pela Meta ao configurar o webhook no painel
 app.get("/webhook/whatsapp", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
-console.log("DEBUG mode:", mode, "| token recebido:", JSON.stringify(token), "| token esperado:", JSON.stringify(process.env.WEBHOOK_VERIFY_TOKEN));
+
   if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFY_TOKEN) {
     return res.status(200).send(challenge);
   }
   return res.sendStatus(403);
 });
 
-// 2) Recebimento de mensagens — cada requisição é UM lead, processado de forma independente.
-//    Se chegarem 100 leads ao mesmo tempo, chegam 100 requisições em paralelo,
-//    cada uma respondida individualmente e automaticamente por este mesmo handler.
 app.post("/webhook/whatsapp", async (req, res) => {
-  // Responde rápido para a Meta não reenviar o evento por timeout
   res.sendStatus(200);
-
   try {
     const entry = req.body.entry?.[0];
     const change = entry?.changes?.[0]?.value;
     const message = change?.messages?.[0];
-    if (!message) return; // pode ser evento de status (entregue/lido), ignoramos
-
-    const from = message.from; // telefone do lead
+    if (!message) return;
+    const from = message.from;
     const contactName = change?.contacts?.[0]?.profile?.name;
     const text = message.text?.body;
     const buttonId = message.interactive?.button_reply?.id;
-
     await handleIncomingMessage({ from, name: contactName, text, buttonId });
   } catch (err) {
-  console.error("Erro processando mensagem do WhatsApp:", JSON.stringify(err.response?.data || err.message || err, null, 2));
+    console.error("Erro processando mensagem do WhatsApp:", JSON.stringify(err.response?.data || err.message || err, null, 2));
   }
 });
 
-// ============ WEBHOOK DE PAGAMENTO ============
-
-// Chamado pelo provedor de pagamento (Mercado Pago/Asaas/etc.) quando o Pix é confirmado
-app.post("/webhook/pagamento", async (req, res) => {
-  res.sendStatus(200);
-
-  try {
-    // Validação básica: o Asaas envia esse token no header, configurado no painel
-    const tokenRecebido = req.headers["asaas-access-token"];
-    if (process.env.PAYMENT_WEBHOOK_SECRET && tokenRecebido !== process.env.PAYMENT_WEBHOOK_SECRET) {
-      console.warn("Webhook de pagamento com token inválido, ignorando.");
-      return;
-    }
-
-    // Formato do Asaas: { event: "PAYMENT_CONFIRMED", payment: { id, externalReference, status, ... } }
-    const { event, payment } = req.body;
-    const eventosDeConfirmacao = ["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"];
-    if (!eventosDeConfirmacao.includes(event)) return;
-
-    const paymentId = payment.id;
-    const lead = findLeadByPaymentId(paymentId);
-    if (!lead) {
-      console.warn("Pagamento confirmado mas lead não encontrado:", paymentId);
-      return;
-    }
-
-    await handlePaymentConfirmed(lead);
-  } catch (err) {
-    console.error("Erro processando webhook de pagamento:", err);
+// ============ PÁGINA DE LIBERAÇÃO MANUAL ============
+function checarSenha(req, res, next) {
+  const senha = req.query.senha || req.body.senha;
+  if (senha !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).send("Senha incorreta.");
   }
+  next();
+}
+
+app.get("/admin", checarSenha, (req, res) => {
+  const pendentes = findLeadsAwaitingPayment();
+  const senha = req.query.senha;
+
+  const linhas = pendentes.map((lead) => `
+    <tr>
+      <td>${lead.name || "(sem nome)"}</td>
+      <td>${lead.phone}</td>
+      <td>Opção ${lead.opcao}</td>
+      <td>
+        <form method="POST" action="/admin/liberar">
+          <input type="hidden" name="senha" value="${senha}">
+          <input type="hidden" name="phone" value="${lead.phone}">
+          <button type="submit">Liberar</button>
+        </form>
+      </td>
+    </tr>
+  `).join("");
+
+  res.send(`
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: sans-serif; padding: 20px; }
+          table { width: 100%; border-collapse: collapse; }
+          td { padding: 10px; border-bottom: 1px solid #ccc; }
+          button { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 16px; }
+        </style>
+      </head>
+      <body>
+        <h2>Leads aguardando pagamento (${pendentes.length})</h2>
+        <table>${linhas || "<tr><td>Nenhum lead pendente</td></tr>"}</table>
+      </body>
+    </html>
+  `);
 });
 
-// ============ LEMBRETE AUTOMÁTICO (3H SEM PAGAMENTO) ============
+app.post("/admin/liberar", checarSenha, async (req, res) => {
+  const phone = req.body.phone;
+  const lead = findLeadByPhone(phone);
+  if (!lead) {
+    return res.status(404).send("Lead não encontrado.");
+  }
+  await handlePaymentConfirmed(lead);
+  res.redirect(`/admin?senha=${req.body.senha}`);
+});
 
-// Verifica a cada 15 minutos se há leads parados há mais de X horas em "aguardando_pagamento"
+// ============ LEMBRETES AUTOMÁTICOS ============
 setInterval(async () => {
   try {
     await enviarLembretesPendentes();
   } catch (err) {
-    console.error("Erro ao enviar lembretes pendentes:", err);
+    console.error("Erro ao enviar lembretes pendentes:", JSON.stringify(err.response?.data || err.message || err, null, 2));
   }
 }, 15 * 60 * 1000);
 
-// Verifica a cada 5 minutos se há leads que não interagiram após as boas-vindas
 setInterval(async () => {
   try {
     await enviarReengajamentos();
   } catch (err) {
-    console.error("Erro ao enviar reengajamentos:", err);
+    console.error("Erro ao enviar reengajamentos:", JSON.stringify(err.response?.data || err.message || err, null, 2));
   }
 }, 5 * 60 * 1000);
 
