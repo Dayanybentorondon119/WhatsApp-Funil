@@ -5,7 +5,7 @@
  */
 
 export const MINUTOS_SEM_ESCOLHA_ANTES_DE_REENGAJAR = 20;
-export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
+export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 2;
 
 // ============ SEQUÊNCIA 1: BOAS-VINDAS (lead novo) ============
 export const sequenciaBoasVindas = [
