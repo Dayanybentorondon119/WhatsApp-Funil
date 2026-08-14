@@ -82,17 +82,9 @@ export const sequenciaCobrancaOpcao1 = [
     delayAfter: 3,
   },
   { type: "text", text: "Prontinho.. Para abrir a apostila é só clicar logo acima👆👆👆\n\nVou te mandar agora meu pix!", delayAfter: 3 },
-  {
-    type: "text",
-    text: `💳 Valor: R$10,00 via Pix
-🔢 Chave Pix (E-Mail):
-
-ceciliarondonweb@gmail.com
-
-Está em nome de *Cecilia Ferreira Dias Rondon*
-Minha Mãe`,
-    delayAfter: 3,
-  },
+  { type: "text", text: "💳 Valor: R$10,00 via Pix\n🔢 Chave Pix (E-Mail):", delayAfter: 2 },
+  { type: "text", text: "ceciliarondonweb@gmail.com", delayAfter: 2 },
+  { type: "text", text: "Está em nome de *Cecilia Ferreira Dias Rondon*\nMinha Mãe", delayAfter: 3 },
   { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza!", delayAfter: 3 },
   {
     type: "text",
@@ -124,17 +116,9 @@ export const sequenciaCobrancaOpcao2 = [
     delayAfter: 3,
   },
   { type: "text", text: "Prontinho.. Para abrir a apostila é só clicar logo acima👆👆👆\n\nVou te mandar agora meu pix!", delayAfter: 3 },
-  {
-    type: "text",
-    text: `💳 Valor: R$17,00 via Pix
-🔢 Chave Pix (E-Mail):
-
-ceciliarondonweb@gmail.com
-
-Está em nome de *Cecilia Ferreira Dias Rondon*
-Minha Mãe`,
-    delayAfter: 3,
-  },
+  { type: "text", text: "💳 Valor: R$17,00 via Pix\n🔢 Chave Pix (E-Mail):", delayAfter: 2 },
+  { type: "text", text: "ceciliarondonweb@gmail.com", delayAfter: 2 },
+  { type: "text", text: "Está em nome de *Cecilia Ferreira Dias Rondon*\nMinha Mãe", delayAfter: 3 },
   { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza!", delayAfter: 3 },
   {
     type: "text",
