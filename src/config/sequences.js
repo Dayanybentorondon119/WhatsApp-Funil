@@ -2,27 +2,9 @@
  * ============================================================
  *  EDITE AQUI: textos, áudios, imagens, PDFs e tempos de espera
  * ============================================================
- * Esse é o único arquivo que você precisa mexer pra mudar o
- * conteúdo do funil. A lógica (o "motor") fica em funnel.js e
- * você não precisa tocar nela.
- *
- * Cada sequência é uma lista de passos. Tipos possíveis:
- *   - { type: "text", text: "..." }
- *   - { type: "audio", url: "..." }
- *   - { type: "image", url: "...", caption: "..." }
- *   - { type: "document", url: "...", filename: "...", caption: "..." }
- *   - { type: "buttons", text: "...", options: ["...", "..."] }
- *
- * "delayAfter" = quantos segundos esperar DEPOIS de mandar esse
- * passo, antes de mandar o próximo (evita parecer robô disparando
- * tudo de uma vez).
- * ============================================================
  */
 
-export const PRECO_PRODUTO = 10.0;
-
-export const MINUTOS_SEM_INTERACAO_ANTES_DE_REENGAJAR = 10;
-
+export const MINUTOS_SEM_ESCOLHA_ANTES_DE_REENGAJAR = 20;
 export const HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR = 3;
 
 // ============ SEQUÊNCIA 1: BOAS-VINDAS (lead novo) ============
@@ -78,81 +60,143 @@ Pudim de Nutella Sem Forno
   },
   {
     type: "text",
-    text: `*Qual das 2 opções você prefere amada?*
+    text: `Eu vou te enviar o material antecipadamente pois trabalhamos na honestidade *mas antes de responder, verifique se realmente possa pagar, acredito que você seja uma pessoa de Deus e honesta e que vai me pagar certinho. Se não puder me pagar nem responda pois vai prejudicar o meu trabalho❤️*`,
+    delayAfter: 3,
+  },
+  {
+    type: "buttons",
+    text: "*Qual das 2 opções você prefere amada?*",
+    options: ["Opção 1 - R$10", "Opção 2 - R$17"],
+    delayAfter: 0,
+  },
+];
 
-*OPÇÃO 1 - R$10*
-Inclui apenas 20 receitas de torta gelada gourmet
+// ============ SEQUÊNCIA 2: OPÇÃO 1 ESCOLHIDA (só torta, R$10) ============
+export const sequenciaCobrancaOpcao1 = [
+  { type: "text", text: "Maravilha, vou te enviar abaixo a apostila e logo em seguida meu pix. 🥰", delayAfter: 3 },
+  {
+    type: "document",
+    url: "https://drive.google.com/uc?export=download&id=1AcFndz25l-q6AlGgLR_cv3bbh_2MRJwY",
+    filename: "Demo-Tortas-Geladas-Gourmet.pdf",
+    caption: "",
+    delayAfter: 3,
+  },
+  { type: "text", text: "Prontinho.. Para abrir a apostila é só clicar logo acima👆👆👆\n\nVou te mandar agora meu pix!", delayAfter: 3 },
+  {
+    type: "text",
+    text: `💳 Valor: R$10,00 via Pix
+🔢 Chave Pix (E-Mail):
 
-*OPÇÃO 2 - R$17 COMPLETA*
-Inclui com todas as receitas de torta gelada gourmet + as receitas de pudim sem forno gourmet com todo conteúdo que te informei acima`,
+ceciliarondonweb@gmail.com
+
+Está em nome de *Cecilia Ferreira Dias Rondon*
+Minha Mãe`,
+    delayAfter: 3,
+  },
+  { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza!", delayAfter: 3 },
+  {
+    type: "text",
+    text: "Aguardo você honrar seu compromisso comigo e me enviar o comprovante abaixo. Na fé de Deus🙏🏻. *SEI QUE VOCÊ É UMA PESSOA HONESTA E VAI CUMPRIR COM SUA PALAVRA, POIS VOCÊ É UM EXEMPLO PARA SUA FAMÍLIA*",
     delayAfter: 3,
   },
   {
     type: "text",
-    text: `Eu vou te enviar o material antecipadamente pois trabalhamos na honestidade *mas antes de responder, verifique se realmente possa pagar, acredito que você seja uma pessoa de Deus e honesta e que vai me pagar certinho. Se não puder me pagar nem responda pois vai prejudicar o meu trabalho❤️*
-
-Só me responder se prefere a opção 1 ou a 2 e já te envio.`,
+    text: "😍🔥 *PRESENTE ESPECIAL* 😍🔥\n\nMe enviando o pix em até 10 minutos eu vou te dar um *BÔNUS MUITO ESPECIAL*!!\n\nEsse é o segredo que muita gente usa para dobrar o faturamento trabalhando em casa...",
     delayAfter: 0,
   },
 ];
 
-// ============ SEQUÊNCIA 2: CLIENTE QUIS SABER MAIS (não decidiu ainda) ============
-export const sequenciaContarMais = [
+// ============ SEQUÊNCIA 3: OPÇÃO 2 ESCOLHIDA (torta + pudim, R$17) ============
+export const sequenciaCobrancaOpcao2 = [
+  { type: "text", text: "Maravilha, vou te enviar abaixo a apostila e logo em seguida meu pix. 🥰", delayAfter: 3 },
   {
-    type: "text",
-    text: "São mais de 80 receitas práticas, com opções para emagrecer de forma saudável, ideais pra quem treina ou quer variar a alimentação.",
-    delayAfter: 8,
-  },
-  {
-    type: "buttons",
-    text: "Posso liberar o acesso pra você?",
-    options: ["Sim, quero!"],
-    delayAfter: 0,
-  },
-];
-
-// ============ NOVO: PEDIR O CPF ANTES DE GERAR A COBRANÇA ============
-export const mensagemPedirCpf =
-  "Perfeito! 🎉 Pra eu gerar sua chave Pix, me manda seu CPF (só os números, sem pontos nem traço).";
-
-export const mensagemCpfInvalido =
-  "Esse CPF não parece completo 🤔 Manda só os 11 números, sem espaço nem pontuação.";
-
-// ============ SEQUÊNCIA 3: CLIENTE ACEITOU (gera cobrança) ============
-export const sequenciaCobranca = [
-  {
-    type: "text",
-    text: "Perfeito! O material completo custa R${preco}. Assim que o pagamento for confirmado, eu libero tudo automaticamente aqui:\n\n{link}",
-    delayAfter: 0,
-  },
-];
-
-// ============ SEQUÊNCIA 4: PAGAMENTO CONFIRMADO ============
-export const sequenciaPagamentoConfirmado = [
-  {
-    type: "text",
-    text: "Pagamento confirmado! Muito obrigada 💛 Já vou te mandar o material completo.",
-    delayAfter: 6,
+    type: "document",
+    url: "https://drive.google.com/uc?export=download&id=1AcFndz25l-q6AlGgLR_cv3bbh_2MRJwY",
+    filename: "Demo-Tortas-Geladas-Gourmet.pdf",
+    caption: "",
+    delayAfter: 2,
   },
   {
     type: "document",
-    url: "https://SEU-DOMINIO.com/assets/receitas-saladas.pdf",
-    filename: "Receitas-Saladas-Premium.pdf",
-    caption: "Aqui está seu material completo! 🥗",
-    delayAfter: 5,
+    url: "https://drive.google.com/uc?export=download&id=1E_jlemCCAtKGrXc4dZ3-Rkj70F69O3Nl",
+    filename: "Demo-Pudins-Sem-Forno.pdf",
+    caption: "",
+    delayAfter: 3,
+  },
+  { type: "text", text: "Prontinho.. Para abrir a apostila é só clicar logo acima👆👆👆\n\nVou te mandar agora meu pix!", delayAfter: 3 },
+  {
+    type: "text",
+    text: `💳 Valor: R$17,00 via Pix
+🔢 Chave Pix (E-Mail):
+
+ceciliarondonweb@gmail.com
+
+Está em nome de *Cecilia Ferreira Dias Rondon*
+Minha Mãe`,
+    delayAfter: 3,
+  },
+  { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza!", delayAfter: 3 },
+  {
+    type: "text",
+    text: "Aguardo você honrar seu compromisso comigo e me enviar o comprovante abaixo. Na fé de Deus🙏🏻. *SEI QUE VOCÊ É UMA PESSOA HONESTA E VAI CUMPRIR COM SUA PALAVRA, POIS VOCÊ É UM EXEMPLO PARA SUA FAMÍLIA*",
+    delayAfter: 3,
   },
   {
     type: "text",
-    text: "Bom apetite e qualquer dúvida sobre as receitas, chama por aqui!",
+    text: "😍🔥 *PRESENTE ESPECIAL* 😍🔥\n\nMe enviando o pix em até 10 minutos eu vou te dar um *BÔNUS MUITO ESPECIAL*!!\n\nEsse é o segredo que muita gente usa para dobrar o faturamento trabalhando em casa...",
     delayAfter: 0,
   },
 ];
 
-// ============ SEQUÊNCIA 5: CLIENTE NÃO INTERAGIU (reengajamento) ============
-export const sequenciaReengajamento = [
+// ============ SEQUÊNCIA 4: PAGAMENTO CONFIRMADO (liberado manualmente por você) ============
+export const sequenciaPagamentoConfirmadoOpcao1 = [
+  { type: "text", text: "Pagamento confirmado! Muito obrigada 💛 Já vou te mandar o material completo.", delayAfter: 3 },
+  {
+    type: "document",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Tortinhas%20Geladas%20Gourmet%20Copinho.pdf",
+    filename: "Tortas-Geladas-Gourmet-Completo.pdf",
+    caption: "Aqui está seu material completo! 🥧",
+    delayAfter: 3,
+  },
+  {
+    type: "document",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Coxinhas-Gourmet.pdf",
+    filename: "Bonus-Coxinhas-Gourmet.pdf",
+    caption: "E aqui seu BÔNUS especial 🎁",
+    delayAfter: 0,
+  },
+];
+
+export const sequenciaPagamentoConfirmadoOpcao2 = [
+  { type: "text", text: "Pagamento confirmado! Muito obrigada 💛 Já vou te mandar o material completo.", delayAfter: 3 },
+  {
+    type: "document",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Tortinhas%20Geladas%20Gourmet%20Copinho.pdf",
+    filename: "Tortas-Geladas-Gourmet-Completo.pdf",
+    caption: "Aqui está seu material completo! 🥧",
+    delayAfter: 2,
+  },
+  {
+    type: "document",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Pudim%20Gourmet%20Sem%20fogo.pdf",
+    filename: "Pudins-Sem-Forno-Completo.pdf",
+    caption: "Aqui está seu material completo de pudins! 🍮",
+    delayAfter: 3,
+  },
+  {
+    type: "document",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Coxinhas-Gourmet.pdf",
+    filename: "Bonus-Coxinhas-Gourmet.pdf",
+    caption: "E aqui seu BÔNUS especial 🎁",
+    delayAfter: 0,
+  },
+];
+
+// ============ SEQUÊNCIA 5: LEAD NÃO ESCOLHEU NENHUMA OPÇÃO ============
+export const sequenciaReengajamentoEscolha = [
   {
     type: "text",
-    text: "Oi {nome}! Vi que você chegou a ver o material das receitas — ficou alguma dúvida? Tô por aqui se precisar 🥗",
+    text: "Oi {nome}! Vi que você chegou a ver as 2 opções — ficou alguma dúvida? Qual você prefere, a 1 ou a 2? 🥧",
     delayAfter: 0,
   },
 ];
@@ -161,14 +205,14 @@ export const sequenciaReengajamento = [
 export const sequenciaLembretePagamento = [
   {
     type: "text",
-    text: "Oi! Passando aqui só pra lembrar que seu acesso ao material ainda está reservado. Se quiser finalizar, o link de pagamento continua valendo. Qualquer dúvida, me chama! 🥗",
+    text: "Oi! Passando aqui só pra lembrar que seu acesso ao material ainda está reservado. Se já pagou, me manda o comprovante que eu libero na hora! Qualquer dúvida, me chama 🥧",
     delayAfter: 0,
   },
 ];
 
-// ============ MENSAGENS DE REENGAJAMENTO PARA QUEM JÁ PAGOU ============
+// ============ MENSAGEM PARA QUEM JÁ PAGOU E MANDOU MENSAGEM DE NOVO ============
 export const mensagemJaPago =
-  "Já te enviei seu material! Qualquer dúvida sobre as receitas, é só chamar por aqui. 🥗";
+  "Já te enviei seu material! Qualquer dúvida sobre as receitas, é só chamar por aqui. 🥧";
 
 export const mensagemAguardandoPagamento =
-  "Assim que o pagamento for confirmado, libero seu material automaticamente por aqui! Qualquer dúvida, me chama.";
+  "Recebi sua mensagem! Assim que eu conferir seu comprovante, libero seu material completo por aqui. Qualquer dúvida, me chama.";
