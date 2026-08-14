@@ -16,8 +16,7 @@ export function getOrCreateLead(phone, name) {
       phone,
       name: name || null,
       stage: "novo",
-      cpf: null,
-      payment_id: null,
+      opcao: null,
       reminder_sent: false,
       reengagement_sent: false,
       created_at: new Date().toISOString(),
@@ -27,20 +26,14 @@ export function getOrCreateLead(phone, name) {
   }
   return data.leads[phone];
 }
-export function updateStage(phone, stage, paymentId = null) {
+export function updateStage(phone, stage, opcao = null) {
   const data = loadDb();
   if (!data.leads[phone]) return;
   data.leads[phone].stage = stage;
-  if (paymentId) data.leads[phone].payment_id = paymentId;
+  if (opcao) data.leads[phone].opcao = opcao;
   data.leads[phone].reminder_sent = false;
   data.leads[phone].reengagement_sent = false;
   data.leads[phone].updated_at = new Date().toISOString();
-  saveDb(data);
-}
-export function saveCpf(phone, cpf) {
-  const data = loadDb();
-  if (!data.leads[phone]) return;
-  data.leads[phone].cpf = cpf;
   saveDb(data);
 }
 export function markReminderSent(phone) {
@@ -55,9 +48,9 @@ export function markReengagementSent(phone) {
   data.leads[phone].reengagement_sent = true;
   saveDb(data);
 }
-export function findLeadByPaymentId(paymentId) {
+export function findLeadByPhone(phone) {
   const data = loadDb();
-  return Object.values(data.leads).find((lead) => lead.payment_id === paymentId);
+  return data.leads[phone] || null;
 }
 export function findLeadsAwaitingPaymentOlderThan(hours) {
   const data = loadDb();
@@ -69,7 +62,7 @@ export function findLeadsAwaitingPaymentOlderThan(hours) {
       new Date(lead.updated_at).getTime() <= cutoff
   );
 }
-export function findLeadsWithoutInteraction(minutes) {
+export function findLeadsWithoutChoice(minutes) {
   const data = loadDb();
   const cutoff = Date.now() - minutes * 60 * 1000;
   return Object.values(data.leads).filter(
@@ -78,4 +71,8 @@ export function findLeadsWithoutInteraction(minutes) {
       !lead.reengagement_sent &&
       new Date(lead.updated_at).getTime() <= cutoff
   );
+}
+export function findLeadsAwaitingPayment() {
+  const data = loadDb();
+  return Object.values(data.leads).filter((lead) => lead.stage === "aguardando_pagamento");
 }
