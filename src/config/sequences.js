@@ -76,7 +76,7 @@ export const sequenciaCobrancaOpcao1 = [
   { type: "text", text: "Maravilha, vou te enviar abaixo a apostila e logo em seguida meu pix. 🥰", delayAfter: 3 },
   {
     type: "document",
-    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Tortas-Geladas-Gourmetda%20Maria_Copinho%20%28DEMO%29%202.pdf",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/demo-torta.pdf.pdf",
     filename: "Demo-Tortas-Geladas-Gourmet.pdf",
     caption: "",
     delayAfter: 3,
@@ -103,14 +103,14 @@ export const sequenciaCobrancaOpcao2 = [
   { type: "text", text: "Maravilha, vou te enviar abaixo a apostila e logo em seguida meu pix. 🥰", delayAfter: 3 },
   {
     type: "document",
-    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Tortas-Geladas-Gourmetda%20Maria_Copinho%20%28DEMO%29%202.pdf",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/demo-torta.pdf.pdf",
     filename: "Demo-Tortas-Geladas-Gourmet.pdf",
     caption: "",
     delayAfter: 2,
   },
   {
     type: "document",
-    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/Pudins%20Sem%20Fogo%20Gourmet%20da%20Maria%28DEMO%29%202.pdf",
+    url: "https://raw.githubusercontent.com/Dayanybentorondon119/WhatsApp-Funil/main/src/demo-pudim.pdf.pdf",
     filename: "Demo-Pudins-Sem-Forno.pdf",
     caption: "",
     delayAfter: 3,
