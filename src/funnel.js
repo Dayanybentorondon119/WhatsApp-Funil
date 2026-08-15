@@ -1,4 +1,4 @@
-import { sendText, sendImage, sendButtons, sendDocument } from "./whatsappClient.js";
+import { sendText, sendImage, sendImageById, sendButtons, sendDocument } from "./whatsappClient.js";
 import {
   getOrCreateLead,
   updateStage,
@@ -6,8 +6,12 @@ import {
   markReengagementSent,
   findLeadsAwaitingPaymentOlderThan,
   findLeadsWithoutChoice,
+  findLeadByPhone,
 } from "./db.js";
 import * as cfg from "./config/sequences.js";
+
+// Número do SEU WhatsApp pessoal, que vai receber os avisos de comprovante.
+const ADMIN_WHATSAPP_NUMBER = process.env.ADMIN_WHATSAPP_NUMBER;
 
 const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -122,6 +126,26 @@ export async function handlePaymentConfirmed(lead) {
 export async function handleUpsellPaymentConfirmed(lead) {
   await enviarSequencia(lead.phone, cfg.sequenciaEntregaUpsell, { nome: lead.name });
   updateStage(lead.phone, "pago_upsell");
+}
+
+/**
+ * Chamado quando um lead manda uma IMAGEM (provável comprovante).
+ * Encaminha pro seu WhatsApp pessoal com os dados do lead, pra você
+ * conferir e liberar pelo /admin sem depender do nome bater.
+ */
+export async function notificarComprovanteRecebido({ from, name, mediaId }) {
+  if (!ADMIN_WHATSAPP_NUMBER) {
+    console.error("ADMIN_WHATSAPP_NUMBER não configurado — não foi possível encaminhar o comprovante.");
+    return;
+  }
+  const lead = findLeadByPhone(from);
+  const situacao = lead ? `${lead.stage}${lead.opcao ? ` (Opção ${lead.opcao})` : ""}` : "lead não encontrado";
+
+  await sendText(
+    ADMIN_WHATSAPP_NUMBER,
+    `📩 *Comprovante recebido!*\n\nNome: ${name || "(sem nome)"}\nTelefone: ${from}\nSituação: ${situacao}`
+  );
+  await sendImageById(ADMIN_WHATSAPP_NUMBER, mediaId, "Comprovante enviado pelo lead ☝️");
 }
 
 export async function enviarLembretesPendentes() {
