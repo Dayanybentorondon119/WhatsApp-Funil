@@ -97,6 +97,20 @@ export async function sendDocument(to, documentUrl, filename, caption = "") {
 }
 
 /**
+ * Reenvia uma imagem que o próprio WhatsApp já tem armazenada (ex: um
+ * comprovante que um lead te mandou), usando o media_id dela — sem precisar
+ * baixar e subir de novo. Usado pra encaminhar comprovantes pro seu WhatsApp pessoal.
+ */
+export async function sendImageById(to, mediaId, caption = "") {
+  return api.post("/messages", {
+    messaging_product: "whatsapp",
+    to,
+    type: "image",
+    image: { id: mediaId, caption },
+  });
+}
+
+/**
  * Envia botões de resposta rápida (até 3), úteis para qualificar o lead sem parecer robótico.
  */
 export async function sendButtons(to, bodyText, buttons) {
