@@ -14,7 +14,6 @@ const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds 
 async function enviarSequencia(to, passos, variaveis = {}) {
   for (const passo of passos) {
     const texto = passo.text ? substituirVariaveis(passo.text, variaveis) : undefined;
-
     switch (passo.type) {
       case "text":
         await sendText(to, texto);
@@ -29,7 +28,6 @@ async function enviarSequencia(to, passos, variaveis = {}) {
         await sendButtons(to, texto, passo.options);
         break;
     }
-
     if (passo.delayAfter) await sleep(passo.delayAfter);
   }
 }
@@ -50,7 +48,6 @@ export async function handleIncomingMessage({ from, name, text, buttonId }) {
   if (lead.stage === "aguardando_interesse") {
     const escolheuOpcao1 = buttonId === "btn_0" || /\b1\b/.test(text || "");
     const escolheuOpcao2 = buttonId === "btn_1" || /\b2\b/.test(text || "");
-
     if (escolheuOpcao1) {
       await enviarSequencia(from, cfg.sequenciaCobrancaOpcao1, { nome: name });
       updateStage(from, "aguardando_pagamento", "1");
@@ -61,29 +58,60 @@ export async function handleIncomingMessage({ from, name, text, buttonId }) {
     return;
   }
 
-  if (lead.stage === "pago") {
-    await sendText(from, cfg.mensagemJaPago);
+  if (lead.stage === "aguardando_pagamento") {
+    await sendText(from, cfg.mensagemAguardandoPagamento);
     return;
   }
 
-  if (lead.stage === "aguardando_pagamento") {
-    await sendText(from, cfg.mensagemAguardandoPagamento);
+  // Lead já recebeu o material principal e a oferta do combo (upsell).
+  if (lead.stage === "pago") {
+    const respondeuSim = /\bsim\b/i.test(text || "");
+    if (respondeuSim) {
+      await enviarSequencia(from, cfg.sequenciaCobrancaUpsell, { nome: name });
+      updateStage(from, "aguardando_pagamento_upsell");
+    } else {
+      await sendText(from, cfg.mensagemJaPago);
+    }
+    return;
+  }
+
+  if (lead.stage === "aguardando_pagamento_upsell") {
+    await sendText(from, cfg.mensagemAguardandoPagamentoUpsell);
+    return;
+  }
+
+  // Lead já comprou o combo também — não tem mais nada pra oferecer.
+  if (lead.stage === "pago_upsell") {
+    await sendText(from, cfg.mensagemJaPago);
+    return;
   }
 }
 
 /**
- * Chamado quando VOCÊ libera manualmente pela página de admin.
+ * Chamado quando VOCÊ libera manualmente pela página de admin
+ * (pagamento do produto principal confirmado).
  */
 export async function handlePaymentConfirmed(lead) {
   const sequencia =
     lead.opcao === "2" ? cfg.sequenciaPagamentoConfirmadoOpcao2 : cfg.sequenciaPagamentoConfirmadoOpcao1;
   await enviarSequencia(lead.phone, sequencia, { nome: lead.name });
   updateStage(lead.phone, "pago");
+
+  // Logo em seguida, oferece o combo de upsell (R$15).
+  await enviarSequencia(lead.phone, cfg.sequenciaOfertaUpsell, { nome: lead.name });
+}
+
+/**
+ * Chamado quando VOCÊ libera manualmente pela página de admin
+ * (pagamento do combo/upsell confirmado).
+ */
+export async function handleUpsellPaymentConfirmed(lead) {
+  await enviarSequencia(lead.phone, cfg.sequenciaEntregaUpsell, { nome: lead.name });
+  updateStage(lead.phone, "pago_upsell");
 }
 
 export async function enviarLembretesPendentes() {
   const pendentes = findLeadsAwaitingPaymentOlderThan(cfg.HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR);
-
   for (const lead of pendentes) {
     await enviarSequencia(lead.phone, cfg.sequenciaLembretePagamento, { nome: lead.name });
     markReminderSent(lead.phone);
@@ -92,7 +120,6 @@ export async function enviarLembretesPendentes() {
 
 export async function enviarReengajamentos() {
   const semEscolha = findLeadsWithoutChoice(cfg.MINUTOS_SEM_ESCOLHA_ANTES_DE_REENGAJAR);
-
   for (const lead of semEscolha) {
     await enviarSequencia(lead.phone, cfg.sequenciaReengajamentoEscolha, { nome: lead.name });
     markReengagementSent(lead.phone);
