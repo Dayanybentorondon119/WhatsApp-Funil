@@ -63,11 +63,25 @@ export async function handleIncomingMessage({ from, name, text, buttonId }) {
     return;
   }
 
-  // Lead já recebeu o material principal e a oferta do combo (upsell).
+  // Lead já recebeu o material principal e a oferta do combo por R$15.
   if (lead.stage === "pago") {
     const respondeuSim = /\bsim\b/i.test(text || "");
     if (respondeuSim) {
       await enviarSequencia(from, cfg.sequenciaCobrancaUpsell, { nome: name });
+      updateStage(from, "aguardando_pagamento_upsell");
+    } else {
+      // Não aceitou por R$15 — oferece a última chance por R$10.
+      await enviarSequencia(from, cfg.sequenciaOfertaDownsellUpsell, { nome: name });
+      updateStage(from, "pago_downsell_ofertado");
+    }
+    return;
+  }
+
+  // Lead recebeu a oferta de downsell (R$10) e ainda não respondeu.
+  if (lead.stage === "pago_downsell_ofertado") {
+    const respondeuSim = /\bsim\b/i.test(text || "");
+    if (respondeuSim) {
+      await enviarSequencia(from, cfg.sequenciaCobrancaUpsellDownsell, { nome: name });
       updateStage(from, "aguardando_pagamento_upsell");
     } else {
       await sendText(from, cfg.mensagemJaPago);
