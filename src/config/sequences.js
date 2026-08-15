@@ -189,7 +189,7 @@ export const sequenciaReengajamentoEscolha = [
 export const sequenciaLembretePagamento = [
   {
     type: "text",
-    text: "Oi! Passando aqui só pra lembrar que seu acesso ao material ainda está reservado. Se já pagou, me manda o comprovante que eu libero na hora! Qualquer dúvida, me chama 🥧",
+    text: "Oi querida, notei que você ainda não finalizou o pagamento da sua apostila 🥹\nFicou alguma dúvida ou travou em algo? Tô aqui pra te ajudar!\n\nSe quiser, aqui está o pix de novo, é só copiar:\nceciliarondonweb@gmail.com\n\nAssim que enviar o comprovante, libero tudo certinho pra você 💖",
     delayAfter: 0,
   },
 ];
