@@ -179,8 +179,9 @@ export const sequenciaPagamentoConfirmadoOpcao2 = [
 // ============ SEQUÊNCIA 4B: OFERTA DO UPSELL (enviada logo após a entrega principal) ============
 export const sequenciaOfertaUpsell = [
   {
-    type: "text",
-    text: `🌸 Amiga, antes de encerrar, quero te mostrar algo que pode mudar ainda mais sua vida!
+    type: "image",
+    url: "https://i.imgur.com/ZKgmuT7.jpeg",
+    caption: `🌸 Amiga, antes de encerrar, quero te mostrar algo que pode mudar ainda mais sua vida!
 
 Estou falando do *COMBO ESPECIAL com 60 RECEITAS GOURMET* — tudo pronto para você começar a vender e lucrar sem precisar sair de casa.
 
@@ -214,10 +215,40 @@ Se você não quer perder essa oportunidade *DIGITE SIM*`,
   },
 ];
 
-// ============ SEQUÊNCIA 4C: COBRANÇA DO UPSELL (lead respondeu "SIM") ============
+// ============ SEQUÊNCIA 4C: COBRANÇA DO UPSELL (lead respondeu "SIM" pro R$15) ============
 export const sequenciaCobrancaUpsell = [
   { type: "text", text: "Maravilha! Vou te mandar o pix pra garantir seu Combo Gourmet 🥰", delayAfter: 3 },
   { type: "text", text: "💳 Valor: R$15,00 via Pix\n🔢 Chave Pix (E-Mail):", delayAfter: 2 },
+  { type: "text", text: "ceciliarondonweb@gmail.com", delayAfter: 2 },
+  { type: "text", text: "Está em nome de *Cecilia Ferreira Dias Rondon*\nMinha Mãe", delayAfter: 3 },
+  { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza que libero seu combo na hora!", delayAfter: 0 },
+];
+
+// ============ SEQUÊNCIA 4C-2: OFERTA DE DOWNSELL (lead não aceitou o combo de R$15) ============
+export const sequenciaOfertaDownsellUpsell = [
+  {
+    type: "image",
+    url: "https://i.imgur.com/K4fdRGv.jpeg",
+    caption: `ÚLTIMA OPORTUNIDADE
+
+Como sei que este material pode te ajudar demais e talvez o motivo de não aceitar seja financeiro, eu vou te oferecer tudo que descrevi acima por *R$10*!!
+
+Sim, por R$10 você leva todo material, agora!`,
+    delayAfter: 3,
+  },
+  {
+    type: "text",
+    text: `🚨 Você não vai deixar essa oportunidade passar de garantir hoje esse COMBO GOURMET COMPLETO que vai ainda mais aumentar sua renda sem sair de casa
+
+SE TIVER INTERESSE *DIGITE SIM*`,
+    delayAfter: 0,
+  },
+];
+
+// ============ SEQUÊNCIA 4C-3: COBRANÇA DO DOWNSELL (lead respondeu "SIM" pro R$10) ============
+export const sequenciaCobrancaUpsellDownsell = [
+  { type: "text", text: "Maravilha! Vou te mandar o pix pra garantir seu Combo Gourmet 🥰", delayAfter: 3 },
+  { type: "text", text: "💳 Valor: R$10,00 via Pix\n🔢 Chave Pix (E-Mail):", delayAfter: 2 },
   { type: "text", text: "ceciliarondonweb@gmail.com", delayAfter: 2 },
   { type: "text", text: "Está em nome de *Cecilia Ferreira Dias Rondon*\nMinha Mãe", delayAfter: 3 },
   { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza que libero seu combo na hora!", delayAfter: 0 },
