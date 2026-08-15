@@ -4,6 +4,7 @@ import {
   handleIncomingMessage,
   handlePaymentConfirmed,
   handleUpsellPaymentConfirmed,
+  notificarComprovanteRecebido,
   enviarLembretesPendentes,
   enviarReengajamentos,
 } from "./funnel.js";
@@ -35,6 +36,11 @@ app.post("/webhook/whatsapp", async (req, res) => {
     const contactName = change?.contacts?.[0]?.profile?.name;
     const text = message.text?.body;
     const buttonId = message.interactive?.button_reply?.id;
+
+    if (message.type === "image") {
+      await notificarComprovanteRecebido({ from, name: contactName, mediaId: message.image?.id });
+    }
+
     await handleIncomingMessage({ from, name: contactName, text, buttonId });
   } catch (err) {
     console.error("Erro processando mensagem do WhatsApp:", JSON.stringify(err.response?.data || err.message || err, null, 2));
