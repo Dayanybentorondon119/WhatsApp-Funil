@@ -176,6 +176,79 @@ export const sequenciaPagamentoConfirmadoOpcao2 = [
   },
 ];
 
+// ============ SEQUÊNCIA 4B: OFERTA DO UPSELL (enviada logo após a entrega principal) ============
+export const sequenciaOfertaUpsell = [
+  {
+    type: "text",
+    text: `🌸 Amiga, antes de encerrar, quero te mostrar algo que pode mudar ainda mais sua vida!
+
+Estou falando do *COMBO ESPECIAL com 60 RECEITAS GOURMET* — tudo pronto para você começar a vender e lucrar sem precisar sair de casa.
+
+🍰 *O que você vai receber nesse COMBO EXCLUSIVO:*
+
+✅ 20 RECEITAS DE BOLO NO POTE GOURMET
+(Morango com Ninho, Banana com Doce de Leite, MUITO mais…)
+
+✅ 20 RECEITAS DE SOBREMESA GOURMET
+(Pavê de Leite Ninho e Morango, Mousse de Maracujá com Chantilly, Sensação de Morango com Chocolate e MUITO mais…)
+
+✅ 20 RECEITAS DE PASTEL GOURMET CROCANTES
+(Camarão com Queijo, Frango com Catupiry, Chocolate com Morango e MUITO mais…)
+
+🎁 *E ainda vem com BÔNUS INCRÍVEIS:*
+✔️ Técnicas e Dicas de Montagem de Pratos Profissionais
+✔️ Conservação e Validade
+✔️ Precificação Inteligente
+✔️ Estratégias de Divulgação nas Redes Sociais
+✔️ E muito mais para você transformar receitas em uma fonte de renda real!
+
+🔥 Esse combo custa R$97, MAS SOMENTE HOJE VOCÊ TEM A CHANCE DE ADQUIRIR POR APENAS *R$15*.`,
+    delayAfter: 3,
+  },
+  {
+    type: "text",
+    text: `🚨 Você não vai deixar essa oportunidade passar de garantir hoje esse COMBO GOURMET COMPLETO que vai ainda mais aumentar sua renda sem sair de casa
+
+Se você não quer perder essa oportunidade *DIGITE SIM*`,
+    delayAfter: 0,
+  },
+];
+
+// ============ SEQUÊNCIA 4C: COBRANÇA DO UPSELL (lead respondeu "SIM") ============
+export const sequenciaCobrancaUpsell = [
+  { type: "text", text: "Maravilha! Vou te mandar o pix pra garantir seu Combo Gourmet 🥰", delayAfter: 3 },
+  { type: "text", text: "💳 Valor: R$15,00 via Pix\n🔢 Chave Pix (E-Mail):", delayAfter: 2 },
+  { type: "text", text: "ceciliarondonweb@gmail.com", delayAfter: 2 },
+  { type: "text", text: "Está em nome de *Cecilia Ferreira Dias Rondon*\nMinha Mãe", delayAfter: 3 },
+  { type: "text", text: "✅ Após o pagamento, me ENVIE o comprovante em PDF aqui por gentileza que libero seu combo na hora!", delayAfter: 0 },
+];
+
+// ============ SEQUÊNCIA 4D: ENTREGA DO UPSELL (liberado manualmente por você) ============
+export const sequenciaEntregaUpsell = [
+  { type: "text", text: "Pagamento confirmado! Aqui está seu Combo Gourmet completo, com as 60 receitas 💛", delayAfter: 3 },
+  {
+    type: "document",
+    url: "https://cdn.jsdelivr.net/gh/Dayanybentorondon119/WhatsApp-Funil@main/src/Receitas%20Gourmet%20de%20Bolo%20no%20Pote.pdf",
+    filename: "Receitas-Bolo-no-Pote-Gourmet.pdf",
+    caption: "20 Receitas de Bolo no Pote Gourmet 🍰",
+    delayAfter: 2,
+  },
+  {
+    type: "document",
+    url: "https://cdn.jsdelivr.net/gh/Dayanybentorondon119/WhatsApp-Funil@main/src/RECEITAS%20GOURMET%20DE%20SOBREMESA.pdf",
+    filename: "Receitas-Sobremesa-Gourmet-Copinho.pdf",
+    caption: "20 Receitas de Sobremesa Gourmet no Copinho 🍮",
+    delayAfter: 2,
+  },
+  {
+    type: "document",
+    url: "https://cdn.jsdelivr.net/gh/Dayanybentorondon119/WhatsApp-Funil@main/src/Receitas%20de%20Pastel%20Gourmet%20Deliciosos%20e%20Crocantes.pdf",
+    filename: "Receitas-Pastel-Gourmet.pdf",
+    caption: "20 Receitas de Pastel Gourmet Crocante 🥟",
+    delayAfter: 0,
+  },
+];
+
 // ============ SEQUÊNCIA 5: LEAD NÃO ESCOLHEU NENHUMA OPÇÃO ============
 export const sequenciaReengajamentoEscolha = [
   {
@@ -194,9 +267,12 @@ export const sequenciaLembretePagamento = [
   },
 ];
 
-// ============ MENSAGEM PARA QUEM JÁ PAGOU E MANDOU MENSAGEM DE NOVO ============
+// ============ MENSAGENS PARA QUEM JÁ PAGOU E MANDOU MENSAGEM DE NOVO ============
 export const mensagemJaPago =
   "Já te enviei seu material! Qualquer dúvida sobre as receitas, é só chamar por aqui. 🥧";
 
 export const mensagemAguardandoPagamento =
   "Recebi sua mensagem! Assim que eu conferir seu comprovante, libero seu material completo por aqui. Qualquer dúvida, me chama.";
+
+export const mensagemAguardandoPagamentoUpsell =
+  "Recebi sua mensagem! Assim que eu conferir seu comprovante do Combo Gourmet, libero tudo certinho por aqui. Qualquer dúvida, me chama.";
