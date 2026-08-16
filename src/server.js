@@ -1,184 +1,109 @@
-import "dotenv/config";
-import express from "express";
-import {
-  handleIncomingMessage,
-  handlePaymentConfirmed,
-  handleUpsellPaymentConfirmed,
-  notificarComprovanteRecebido,
-  enviarLembretesPendentes,
-  enviarReengajamentos,
-  enviarDownsellAutomatico,
-  enviarMensagemManual,
-} from "./funnel.js";
-import { findLeadsAwaitingPayment, findLeadsAwaitingUpsellPayment, findLeadByPhone } from "./db.js";
+import fs from "fs";
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const DB_FILE = "/data/funil.json";
 
-// ============ WEBHOOK DO WHATSAPP ============
-app.get("/webhook/whatsapp", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-  if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFY_TOKEN) {
-    return res.status(200).send(challenge);
+function loadDb() {
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify({ leads: {} }, null, 2));
   }
-  return res.sendStatus(403);
-});
-
-app.post("/webhook/whatsapp", async (req, res) => {
-  res.sendStatus(200);
-  try {
-    const entry = req.body.entry?.[0];
-    const change = entry?.changes?.[0]?.value;
-    const message = change?.messages?.[0];
-    if (!message) return;
-    const from = message.from;
-    const contactName = change?.contacts?.[0]?.profile?.name;
-    const text = message.text?.body;
-    const buttonId = message.interactive?.button_reply?.id;
-
-    if (message.type === "image") {
-      await notificarComprovanteRecebido({ from, name: contactName, mediaId: message.image?.id });
-    }
-
-    await handleIncomingMessage({ from, name: contactName, text, buttonId });
-  } catch (err) {
-    console.error("Erro processando mensagem do WhatsApp:", JSON.stringify(err.response?.data || err.message || err, null, 2));
-  }
-});
-
-// ============ PÁGINA DE LIBERAÇÃO MANUAL ============
-function checarSenha(req, res, next) {
-  const senha = req.query.senha || req.body.senha;
-  if (senha !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).send("Senha incorreta.");
-  }
-  next();
+  return JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
 }
 
-app.get("/admin", checarSenha, (req, res) => {
-  const pendentes = findLeadsAwaitingPayment();
-  const pendentesUpsell = findLeadsAwaitingUpsellPayment();
-  const senha = req.query.senha;
+function saveDb(data) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+}
 
-  const linhas = pendentes.map((lead) => `
-    <tr>
-      <td>${lead.name || "(sem nome)"}</td>
-      <td>${lead.phone}</td>
-      <td>Opção ${lead.opcao}</td>
-      <td>
-        <form method="POST" action="/admin/liberar">
-          <input type="hidden" name="senha" value="${senha}">
-          <input type="hidden" name="phone" value="${lead.phone}">
-          <button type="submit">Liberar</button>
-        </form>
-      </td>
-    </tr>
-  `).join("");
-
-  const linhasUpsell = pendentesUpsell.map((lead) => `
-    <tr>
-      <td>${lead.name || "(sem nome)"}</td>
-      <td>${lead.phone}</td>
-      <td>Combo R$15</td>
-      <td>
-        <form method="POST" action="/admin/liberar-upsell">
-          <input type="hidden" name="senha" value="${senha}">
-          <input type="hidden" name="phone" value="${lead.phone}">
-          <button type="submit" class="upsell">Liberar Combo</button>
-        </form>
-      </td>
-    </tr>
-  `).join("");
-
-  res.send(`
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body { font-family: sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-          td { padding: 10px; border-bottom: 1px solid #ccc; }
-          button { background: #25D366; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 16px; }
-          button.upsell { background: #E1306C; }
-        </style>
-      </head>
-      <body>
-        <h2>Leads aguardando pagamento (${pendentes.length})</h2>
-        <table>${linhas || "<tr><td>Nenhum lead pendente</td></tr>"}</table>
-
-        <h2>Leads aguardando pagamento do Combo (${pendentesUpsell.length})</h2>
-        <table>${linhasUpsell || "<tr><td>Nenhum lead pendente</td></tr>"}</table>
-
-        <h2>Mandar mensagem avulsa pra um lead</h2>
-        <form method="POST" action="/admin/mensagem-manual" style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
-          <input type="hidden" name="senha" value="${senha}">
-          <label>Telefone (com DDI e DDD, só números):</label>
-          <input type="text" name="phone" placeholder="556799999999" required style="padding:8px; font-size:16px;">
-          <label>Mensagem:</label>
-          <textarea name="texto" rows="4" required style="padding:8px; font-size:16px;"></textarea>
-          <button type="submit" style="background:#128C7E;">Enviar mensagem</button>
-        </form>
-      </body>
-    </html>
-  `);
-});
-
-app.post("/admin/liberar", checarSenha, async (req, res) => {
-  const phone = req.body.phone;
-  const lead = findLeadByPhone(phone);
-  if (!lead) {
-    return res.status(404).send("Lead não encontrado.");
+export function getOrCreateLead(phone, name) {
+  const data = loadDb();
+  if (!data.leads[phone]) {
+    data.leads[phone] = {
+      phone,
+      name: name || null,
+      stage: "novo",
+      opcao: null,
+      reminder_sent: false,
+      reengagement_sent: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    saveDb(data);
   }
-  await handlePaymentConfirmed(lead);
-  res.redirect(`/admin?senha=${req.body.senha}`);
-});
+  return data.leads[phone];
+}
 
-app.post("/admin/liberar-upsell", checarSenha, async (req, res) => {
-  const phone = req.body.phone;
-  const lead = findLeadByPhone(phone);
-  if (!lead) {
-    return res.status(404).send("Lead não encontrado.");
-  }
-  await handleUpsellPaymentConfirmed(lead);
-  res.redirect(`/admin?senha=${req.body.senha}`);
-});
+export function updateStage(phone, stage, opcao = null) {
+  const data = loadDb();
+  if (!data.leads[phone]) return;
+  data.leads[phone].stage = stage;
+  if (opcao) data.leads[phone].opcao = opcao;
+  data.leads[phone].reminder_sent = false;
+  data.leads[phone].reengagement_sent = false;
+  data.leads[phone].updated_at = new Date().toISOString();
+  saveDb(data);
+}
 
-app.post("/admin/mensagem-manual", checarSenha, async (req, res) => {
-  const { phone, texto } = req.body;
-  if (!phone || !texto) {
-    return res.status(400).send("Preencha telefone e mensagem.");
-  }
-  await enviarMensagemManual(phone, texto);
-  res.redirect(`/admin?senha=${req.body.senha}`);
-});
+export function markReminderSent(phone) {
+  const data = loadDb();
+  if (!data.leads[phone]) return;
+  data.leads[phone].reminder_sent = true;
+  saveDb(data);
+}
 
-// ============ LEMBRETES AUTOMÁTICOS ============
-setInterval(async () => {
-  try {
-    await enviarLembretesPendentes();
-  } catch (err) {
-    console.error("Erro ao enviar lembretes pendentes:", JSON.stringify(err.response?.data || err.message || err, null, 2));
-  }
-}, 15 * 60 * 1000);
+export function markReengagementSent(phone) {
+  const data = loadDb();
+  if (!data.leads[phone]) return;
+  data.leads[phone].reengagement_sent = true;
+  saveDb(data);
+}
 
-setInterval(async () => {
-  try {
-    await enviarReengajamentos();
-  } catch (err) {
-    console.error("Erro ao enviar reengajamentos:", JSON.stringify(err.response?.data || err.message || err, null, 2));
-  }
-}, 5 * 60 * 1000);
+export function findLeadByPhone(phone) {
+  const data = loadDb();
+  return data.leads[phone] || null;
+}
 
-setInterval(async () => {
-  try {
-    await enviarDownsellAutomatico();
-  } catch (err) {
-    console.error("Erro ao enviar downsell automático:", JSON.stringify(err.response?.data || err.message || err, null, 2));
-  }
-}, 5 * 60 * 1000);
+export function findLeadsAwaitingPaymentOlderThan(hours) {
+  const data = loadDb();
+  const cutoff = Date.now() - hours * 60 * 60 * 1000;
+  return Object.values(data.leads).filter(
+    (lead) =>
+      lead.stage === "aguardando_pagamento" &&
+      !lead.reminder_sent &&
+      new Date(lead.updated_at).getTime() <= cutoff
+  );
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+export function findLeadsWithoutChoice(minutes) {
+  const data = loadDb();
+  const cutoff = Date.now() - minutes * 60 * 1000;
+  return Object.values(data.leads).filter(
+    (lead) =>
+      lead.stage === "aguardando_interesse" &&
+      !lead.reengagement_sent &&
+      new Date(lead.updated_at).getTime() <= cutoff
+  );
+}
+
+export function findLeadsAwaitingPayment() {
+  const data = loadDb();
+  return Object.values(data.leads).filter((lead) => lead.stage === "aguardando_pagamento");
+}
+
+export function findLeadsAwaitingUpsellPayment() {
+  const data = loadDb();
+  return Object.values(data.leads).filter((lead) => lead.stage === "aguardando_pagamento_upsell");
+}
+
+export function findLeadsAguardandoRespostaUpsell(minutes) {
+  const data = loadDb();
+  const cutoff = Date.now() - minutes * 60 * 1000;
+  return Object.values(data.leads).filter(
+    (lead) => lead.stage === "pago" && new Date(lead.updated_at).getTime() <= cutoff
+  );
+}
+
+export function findTodosLeads() {
+  const data = loadDb();
+  return Object.values(data.leads).sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
+}
