@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const DB_FILE = "funil.json";
+const DB_FILE = "/data/funil.json";
 
 function loadDb() {
   if (!fs.existsSync(DB_FILE)) {
