@@ -7,6 +7,7 @@ import {
   notificarComprovanteRecebido,
   enviarLembretesPendentes,
   enviarReengajamentos,
+  enviarDownsellAutomatico,
 } from "./funnel.js";
 import { findLeadsAwaitingPayment, findLeadsAwaitingUpsellPayment, findLeadByPhone } from "./db.js";
 
@@ -148,6 +149,14 @@ setInterval(async () => {
     await enviarReengajamentos();
   } catch (err) {
     console.error("Erro ao enviar reengajamentos:", JSON.stringify(err.response?.data || err.message || err, null, 2));
+  }
+}, 5 * 60 * 1000);
+
+setInterval(async () => {
+  try {
+    await enviarDownsellAutomatico();
+  } catch (err) {
+    console.error("Erro ao enviar downsell automático:", JSON.stringify(err.response?.data || err.message || err, null, 2));
   }
 }, 5 * 60 * 1000);
 
