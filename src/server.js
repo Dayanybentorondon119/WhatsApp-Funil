@@ -8,6 +8,7 @@ import {
   enviarLembretesPendentes,
   enviarReengajamentos,
   enviarDownsellAutomatico,
+  enviarMensagemManual,
 } from "./funnel.js";
 import { findLeadsAwaitingPayment, findLeadsAwaitingUpsellPayment, findLeadByPhone } from "./db.js";
 
@@ -110,6 +111,16 @@ app.get("/admin", checarSenha, (req, res) => {
 
         <h2>Leads aguardando pagamento do Combo (${pendentesUpsell.length})</h2>
         <table>${linhasUpsell || "<tr><td>Nenhum lead pendente</td></tr>"}</table>
+
+        <h2>Mandar mensagem avulsa pra um lead</h2>
+        <form method="POST" action="/admin/mensagem-manual" style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
+          <input type="hidden" name="senha" value="${senha}">
+          <label>Telefone (com DDI e DDD, só números):</label>
+          <input type="text" name="phone" placeholder="556799999999" required style="padding:8px; font-size:16px;">
+          <label>Mensagem:</label>
+          <textarea name="texto" rows="4" required style="padding:8px; font-size:16px;"></textarea>
+          <button type="submit" style="background:#128C7E;">Enviar mensagem</button>
+        </form>
       </body>
     </html>
   `);
@@ -132,6 +143,15 @@ app.post("/admin/liberar-upsell", checarSenha, async (req, res) => {
     return res.status(404).send("Lead não encontrado.");
   }
   await handleUpsellPaymentConfirmed(lead);
+  res.redirect(`/admin?senha=${req.body.senha}`);
+});
+
+app.post("/admin/mensagem-manual", checarSenha, async (req, res) => {
+  const { phone, texto } = req.body;
+  if (!phone || !texto) {
+    return res.status(400).send("Preencha telefone e mensagem.");
+  }
+  await enviarMensagemManual(phone, texto);
   res.redirect(`/admin?senha=${req.body.senha}`);
 });
 
