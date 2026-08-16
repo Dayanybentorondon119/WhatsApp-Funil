@@ -100,3 +100,10 @@ export function findLeadsAguardandoRespostaUpsell(minutes) {
     (lead) => lead.stage === "pago" && new Date(lead.updated_at).getTime() <= cutoff
   );
 }
+
+export function findTodosLeads() {
+  const data = loadDb();
+  return Object.values(data.leads).sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
+}
