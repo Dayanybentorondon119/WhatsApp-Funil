@@ -149,6 +149,14 @@ export async function notificarComprovanteRecebido({ from, name, mediaId }) {
   await sendImageById(ADMIN_WHATSAPP_NUMBER, mediaId, "Comprovante enviado pelo lead ☝️");
 }
 
+/**
+ * Chamado pela página /admin quando você quer mandar uma mensagem
+ * de texto livre pra um lead (fora do fluxo automático do funil).
+ */
+export async function enviarMensagemManual(phone, texto) {
+  await sendText(phone, texto);
+}
+
 export async function enviarLembretesPendentes() {
   const pendentes = findLeadsAwaitingPaymentOlderThan(cfg.HORAS_SEM_PAGAMENTO_ANTES_DE_LEMBRAR);
   for (const lead of pendentes) {
