@@ -92,3 +92,11 @@ export function findLeadsAwaitingUpsellPayment() {
   const data = loadDb();
   return Object.values(data.leads).filter((lead) => lead.stage === "aguardando_pagamento_upsell");
 }
+
+export function findLeadsAguardandoRespostaUpsell(minutes) {
+  const data = loadDb();
+  const cutoff = Date.now() - minutes * 60 * 1000;
+  return Object.values(data.leads).filter(
+    (lead) => lead.stage === "pago" && new Date(lead.updated_at).getTime() <= cutoff
+  );
+}
