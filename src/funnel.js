@@ -7,6 +7,7 @@ import {
   findLeadsAwaitingPaymentOlderThan,
   findLeadsWithoutChoice,
   findLeadByPhone,
+  findLeadsAguardandoRespostaUpsell,
 } from "./db.js";
 import * as cfg from "./config/sequences.js";
 
@@ -161,5 +162,17 @@ export async function enviarReengajamentos() {
   for (const lead of semEscolha) {
     await enviarSequencia(lead.phone, cfg.sequenciaReengajamentoEscolha, { nome: lead.name });
     markReengagementSent(lead.phone);
+  }
+}
+
+/**
+ * Roda periodicamente: manda o downsell (R$10) automaticamente pra quem
+ * recebeu a oferta de R$15 e ficou sem responder nada por 20 minutos.
+ */
+export async function enviarDownsellAutomatico() {
+  const semResposta = findLeadsAguardandoRespostaUpsell(cfg.MINUTOS_SEM_RESPOSTA_UPSELL_ANTES_DE_DOWNSELL);
+  for (const lead of semResposta) {
+    await enviarSequencia(lead.phone, cfg.sequenciaOfertaDownsellUpsell, { nome: lead.name });
+    updateStage(lead.phone, "pago_downsell_ofertado");
   }
 }
